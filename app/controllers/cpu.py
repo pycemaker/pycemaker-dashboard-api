@@ -1,3 +1,4 @@
+import traceback
 from flask import Response, jsonify
 from flask_restful import Resource
 import datetime
@@ -20,7 +21,7 @@ class CpuAnalytics(Resource):
 
     def get(self, date_now, time_range) -> Response:
 
-        data_agora = datetime.datetime.strptime(date_now, '%d-%m-%Y-%H-%M')
+        data_agora = datetime.datetime.strptime(date_now, '%d-%m-%Y-%H-%M-%S')
         data_passado = data_agora - datetime.timedelta(hours=int(time_range))
         data_periodo_anterior = data_passado - \
             datetime.timedelta(hours=int(time_range))
@@ -78,5 +79,31 @@ class CpuAnalytics_2(Resource):
             data = Monitoramento(CpuUsage, date_now, time_range)
             data = data.get_data()
             return jsonify(data)
+        except Exception:
+            traceback.print_exc()
+            return jsonify({'msg': "Nenhum dado encontrado"})
+
+
+class CpuAnalytics_3(Resource):
+
+    def get(self, date_start) -> Response:
+
+        try:
+
+            date_start = datetime.datetime.strptime(
+                date_start, '%d-%m-%Y-%H-%M-%S')
+
+            print(date_start)
+
+            dados = CpuUsage.objects(
+                time_series__gte=date_start)
+
+            dados = [x.to_mongo() for x in dados]
+            dados = [x.to_dict() for x in dados]
+
+            [d.update({"value": float(d["value"]) * 100}) for d in dados]
+            [d.update({"_id": str(d["_id"])}) for d in dados]
+
+            return jsonify(dados)
         except:
             return jsonify({'msg': "Nenhum dado encontrado"})

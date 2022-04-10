@@ -3,7 +3,7 @@ from flask_restful import Api
 from .controllers.authentication import SignUpApi, LoginApi
 from .controllers.user import UsersApi, UserApi
 from .controllers.meal import MealsApi, MealApi
-from .controllers.cpu import CpuAnalytics, CpuAnalytics_2
+from .controllers.cpu import CpuAnalytics, CpuAnalytics_2, CpuAnalytics_3
 from .controllers.report import Report
 
 
@@ -19,5 +19,6 @@ def create_routes(api: Api):
 
     api.add_resource(CpuAnalytics, '/cpu/<date_now>/<time_range>')
     api.add_resource(CpuAnalytics_2, '/cpus/<date_now>/<time_range>')
+    api.add_resource(CpuAnalytics_3, '/cpu/<date_start>')
 
     api.add_resource(Report, '/report/<date_now>/<time_range>/<email_to>')

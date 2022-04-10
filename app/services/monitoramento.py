@@ -1,5 +1,6 @@
 import numpy as np
 import datetime
+import math
 
 
 class Monitoramento:
@@ -10,7 +11,7 @@ class Monitoramento:
         self.classe_do_dado = classe_do_dado
         self.nome_do_dado = "value"
         self.data_final_atual = datetime.datetime.strptime(
-            date_now, '%d-%m-%Y-%H-%M')
+            date_now, '%d-%m-%Y-%H-%M-%S')
         self.data_inicial_atual = self.data_final_atual - \
             datetime.timedelta(hours=int(time_range))
         self.data_inicial_anterior = self.data_inicial_atual - \
@@ -30,8 +31,10 @@ class Monitoramento:
         return dados
 
     def get_mean(self, dados):
-        mean = np.mean([x[self.nome_do_dado] for x in dados])
-        return mean
+        if dados:
+            mean = np.mean([x[self.nome_do_dado] for x in dados])
+            return mean
+        return 0
 
     def get_higher(self):
         higher = max(self.dados_atuais, key=lambda x: x[self.nome_do_dado])
@@ -46,8 +49,10 @@ class Monitoramento:
         return all_lower
 
     def get_growth(self, mean_atual, mean_anterior):
-        growth = (mean_atual - mean_anterior) / mean_anterior
-        return growth * 100
+        if mean_anterior != 0:
+            growth = (mean_atual - mean_anterior) / mean_anterior
+            return growth * 100
+        return 0
 
     def get_data(self):
         self.dados_atuais = self.transform_data(
