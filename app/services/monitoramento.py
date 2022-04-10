@@ -1,6 +1,8 @@
+import json
 import numpy as np
 import datetime
 import math
+import pandas as pd
 
 
 class Monitoramento:
@@ -54,6 +56,14 @@ class Monitoramento:
             return growth * 100
         return 0
 
+    def get_criticity_classification(self):
+        df = pd.DataFrame(self.dados_atuais)
+        df = df.replace(np.nan, 0)
+        df = df.groupby(['criticity'])['value'].sum()
+        df = df.to_json(orient="table")
+        parsed = json.loads(df)
+        return parsed
+
     def get_data(self):
         self.dados_atuais = self.transform_data(
             self.data_inicial_atual, self.data_final_atual)
@@ -65,6 +75,7 @@ class Monitoramento:
         lower = self.get_lower()
         higher = self.get_higher()
         growth = self.get_growth(mean_atual, mean_anterior)
+        criticity_classification = self.get_criticity_classification()
 
         return {'data': self.dados_atuais,
                 'data_anterior': self.dados_anteriores,
@@ -73,5 +84,6 @@ class Monitoramento:
                 'lower': lower,
                 'higher': higher,
                 'growth': growth,
+                'criticity_classification': criticity_classification,
                 'datas': [self.data_final_atual, self.data_inicial_atual,
                           self.data_inicial_anterior]}
