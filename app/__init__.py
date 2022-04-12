@@ -19,7 +19,7 @@ default_config = {'MONGODB_SETTINGS': {
     # 'username': 'admin',
     # 'password': 'password',
     # 'authentication_source': 'admin'
-    'tz_aware':True
+    'tz_aware': True
 },
     'JWT_SECRET_KEY': 'timaceitadoacoes'}
 

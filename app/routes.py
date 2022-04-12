@@ -1,24 +1,27 @@
 from flask_restful import Api
 
-from .controllers.authentication import SignUpApi, LoginApi
-from .controllers.user import UsersApi, UserApi
-from .controllers.meal import MealsApi, MealApi
-from .controllers.cpu import CpuAnalytics, CpuAnalytics_2, CpuAnalytics_3
+from .controllers.cpu import CpuCurrentConsume, CpuIntervalConsume
+from .controllers.ram import RamCurrentConsume, RamIntervalConsume
+from .controllers.disk import DiskCurrentConsume, DiskIntervalConsume
+from .controllers.response_time import ResponseTimeCurrentConsume, ResponseTimeIntervalConsume
+from .controllers.http_fail import HttpFailCurrentConsume, HttpFailIntervalConsume
 from .controllers.report import Report
 
 
 def create_routes(api: Api):
-    api.add_resource(SignUpApi, '/authentication/signup')
-    api.add_resource(LoginApi, '/authentication/login')
-
-    api.add_resource(UsersApi, '/user')
-    api.add_resource(UserApi, '/user/<user_id>')
-
-    api.add_resource(MealsApi, '/meal')
-    api.add_resource(MealApi, '/meal/<meal_id>')
-
-    api.add_resource(CpuAnalytics, '/cpu/<date_now>/<time_range>')
-    api.add_resource(CpuAnalytics_2, '/cpus/<date_now>/<time_range>')
-    api.add_resource(CpuAnalytics_3, '/cpu/<date_start>')
+    api.add_resource(CpuIntervalConsume, '/cpu/<date_now>/<time_range>')
+    api.add_resource(CpuCurrentConsume, '/cpu/<date_start>')
+    
+    api.add_resource(RamCurrentConsume, '/ram/<date_now>/<time_range>')
+    api.add_resource(RamIntervalConsume, '/ram/<date_start>')
+    
+    api.add_resource(DiskCurrentConsume, '/disk/<date_now>/<time_range>')
+    api.add_resource(DiskIntervalConsume, '/disk/<date_start>')
+    
+    api.add_resource(ResponseTimeCurrentConsume, '/reponse_time/<date_now>/<time_range>')
+    api.add_resource(ResponseTimeIntervalConsume, '/reponse_time/<date_start>')
+    
+    api.add_resource(HttpFailCurrentConsume, '/http_fail/<date_now>/<time_range>')
+    api.add_resource(HttpFailIntervalConsume, '/http_fail/<date_start>')
 
     api.add_resource(Report, '/report/<date_now>/<time_range>/<email_to>')

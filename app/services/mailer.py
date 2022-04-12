@@ -4,6 +4,9 @@ import os
 from email.message import EmailMessage
 from email.mime.image import MIMEImage
 from dotenv import load_dotenv
+from dateutil import parser
+import locale
+locale.setlocale(locale.LC_ALL, "pt_br")
 
 load_dotenv('.env')
 
@@ -61,17 +64,31 @@ class Mailer:
 
         print("E-mail enviado com sucesso!")
 
-    def generate_picos(self, data, tag):
+    def generate_picos(self, data, tag, str_indicator=""):
         picos = ''
         for x in data:
             picos = picos + \
-                f"<p> {tag} - {x['time_series']} - {x['value']} </p>"
+                f"<li> {tag} - {self.format_date(x['time_series'])} - {round(x['value'], 2)}{str_indicator} </li>"
         return picos
+
+    def generate_picos_2(self, data, tag, str_indicator=""):
+        picos = ''
+        for x in data:
+            picos = picos + \
+                f"<li> {tag} - {self.format_date(x['time_series'])} - {int(x['value'])}{str_indicator} </li>"
+        return picos
+
+    def format_date(self, date):
+        date = parser.parse(date)
+        return date.strftime("%a, %d de %b, %H:%M:%S")
+
+    def format_date_2(self, date):
+        return date.strftime("%d/%m/%Y %H:%M")
 
     def generate_report(self, data, image_paths, date_now, time_range):
 
         data_final_atual = datetime.datetime.strptime(
-            date_now, '%d-%m-%Y-%H-%M')
+            date_now, '%d-%m-%Y-%H-%M-%S')
         data_inicial_atual = data_final_atual - \
             datetime.timedelta(hours=int(time_range))
 
@@ -80,70 +97,86 @@ class Mailer:
         <html>
             <body>
                 <h1>Relatório Periódico</h1>
-                <p>Período analisado: {}-{}</p>
+                <p>Período analisado: {} - {}</p>
                 <p>Visualize em tempo real: <a href="https://www.google.com.br">Pycemaker Dashboard</a></p>
 
                 <h2>Consumo de CPU</h2>
                 <img src={}><br>
                 <img src={}><br>
-                <p>Crescimento ou Diminuição: {}</p>
-                <p>Média de Uso: {}</p>
+                <p>Crescimento ou Diminuição: {}%</p>
+                <p>Média de Uso: {}%</p>
                 <p>Picos de Uso:</p>
+                <ul>
                 {}
                 {}
+                </ul>
 
                 <h2>Consumo de RAM</h2>
                 <img src={}><br>
                 <img src={}><br>
-                <p>Crescimento ou Diminuição: {}</p>
-                <p>Média de Uso: {}</p>
+                <p>Crescimento ou Diminuição: {}%</p>
+                <p>Média de Uso: {}%</p>
                 <p>Picos de Uso:</p>
+                <ul>
                 {}
                 {}
+                </ul>
 
                 <h2>Consumo de Disco</h2>
                 <img src={}><br>
                 <img src={}><br>
-                <p>Crescimento ou Diminuição: {}</p>
-                <p>Média de Uso: {}</p>
+                <p>Crescimento ou Diminuição: {}%</p>
+                <p>Média de Uso: {}%</p>
                 <p>Picos de Uso:</p>
+                <ul>
                 {}
                 {}
+                </ul>
 
                 <h2>Tempo de Resposta</h2>
                 <img src={}><br>
                 <img src={}><br>
-                <p>Crescimento ou Diminuição: {}</p>
-                <p>Média de Uso: {}</p>
+                <p>Crescimento ou Diminuição: {}%</p>
+                <p>Tempo Médio: {}ms</p>
                 <p>Picos de Uso:</p>
+                <ul>
                 {}
                 {}
+                </ul>
 
                 <h2>Total de Falhas HTTP</h2>
                 <img src={}><br>
                 <img src={}><br>
-                <p>Crescimento ou Diminuição: {}</p>
-                <p>Média de Uso: {}</p>
+                <p>Crescimento ou Diminuição: {}%</p>
+                <p>Média de Falhas: {}</p>
                 <p>Picos de Uso:</p>
+                <ul>
                 {}
                 {}
+                </ul>
             </body>
         </html>
-        """.format(data_inicial_atual, data_final_atual,
-                   image_paths[0], image_paths[1], data[0]['growth'], data[0]['mean'],
-                   self.generate_picos(data[0]['higher'], "Máximo"),
-                   self.generate_picos(data[0]['lower'], "Mínimo"),
-                   image_paths[2], image_paths[3], data[1]['growth'], data[1]['mean'],
-                   self.generate_picos(data[1]['higher'], "Máximo"),
-                   self.generate_picos(data[1]['lower'], "Mínimo"),
-                   image_paths[4], image_paths[5], data[2]['growth'], data[2]['mean'],
-                   self.generate_picos(data[2]['higher'], "Máximo"),
-                   self.generate_picos(data[2]['lower'], "Mínimo"),
-                   image_paths[6], image_paths[7], data[3]['growth'], data[3]['mean'],
-                   self.generate_picos(data[3]['higher'], "Máximo"),
-                   self.generate_picos(data[3]['lower'], "Mínimo"),
-                   image_paths[8], image_paths[9], data[4]['growth'], data[4]['mean'],
-                   self.generate_picos(data[4]['higher'], "Máximo"),
-                   self.generate_picos(data[4]['lower'], "Mínimo"))
+        """.format(self.format_date_2(data_inicial_atual), self.format_date_2(data_final_atual),
+                   image_paths[0], image_paths[1], round(
+                       data[0]['growth'] * 100, 2), round(data[0]['mean'] * 100, 2),
+                   self.generate_picos(data[0]['higher'], "Máximo", "%"),
+                   self.generate_picos(data[0]['lower'], "Mínimo", "%"),
+                   image_paths[2], image_paths[3], round(
+                       data[1]['growth'] * 100, 2), round(data[1]['mean'] * 100, 2),
+                   self.generate_picos(data[1]['higher'], "Máximo", "%"),
+                   self.generate_picos(data[1]['lower'], "Mínimo", "%"),
+                   image_paths[4], image_paths[5], round(
+                       data[2]['growth'] * 100, 2), round(data[2]['mean'] * 100, 2),
+                   self.generate_picos(data[2]['higher'], "Máximo", "%"),
+                   self.generate_picos(data[2]['lower'], "Mínimo", "%"),
+                   image_paths[6], image_paths[7], round(
+                       data[3]['growth'] * 100, 2), int(data[3]['mean']),
+                   self.generate_picos_2(data[3]['higher'], "Máximo", "ms"),
+                   self.generate_picos_2(data[3]['lower'], "Mínimo", "ms"),
+                   image_paths[8], image_paths[9], round(
+                       data[4]['growth'] * 100, 2), int(data[4]['mean']),
+                   self.generate_picos_2(
+                       data[4]['higher'], "Máximo", " falhas"),
+                   self.generate_picos_2(data[4]['lower'], "Mínimo", " falhas"))
 
         return html_body
