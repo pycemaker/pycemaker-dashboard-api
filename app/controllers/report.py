@@ -1,3 +1,4 @@
+import sys
 import traceback
 from flask import Response, jsonify
 from flask_restful import Resource
@@ -8,10 +9,11 @@ from app.entities.ram import JvmMemoryUsage
 from app.services.image_uploader import ImageUploader
 from app.services.mailer import Mailer
 from app.services.monitoramento import Monitoramento
+from app.services.reporter import Reporter
 from app.services.plot_generator import plot_barh_chart, plot_line_chart
 
 
-class Report(Resource):
+class ReportTest(Resource):
 
     def get(self, date_now, time_range, email_to) -> Response:
 
@@ -52,6 +54,22 @@ class Report(Resource):
 
             return jsonify({'msg': "E-mail enviado com sucesso!"})
         except Exception:
-            traceback.print_exc()
             uploader.close()
+            print(traceback.format_exc())
+            print(sys.exc_info()[2])
             return jsonify({'msg': "Não foi possível finalizar a operação"})
+
+
+class Report(Resource):
+
+    def get(self, date_now, time_range, email_to) -> Response:
+
+        try:
+            report = Reporter(date_now, time_range, email_to)
+            report = report.get_report()
+
+            return jsonify({'msg': report})
+        except Exception as err:
+            print(traceback.format_exc())
+            print(sys.exc_info()[2])
+            return jsonify({'msg': err})

@@ -8,12 +8,16 @@ from dateutil.parser import parse
 import io
 
 
-def plot_line_chart(data):
+def plot_line_chart(data, isPercentage):
 
     df = pd.DataFrame(data)
     df['time_series'] = pd.to_datetime(df['time_series']).dt.tz_convert(None)
     df['time_series'] = df['time_series'].dt.strftime("%d/%m %H:%M:%S")
-    df['value'] = df['value'] * 100
+    if isPercentage:
+        # df['value'] = df['value'] / 100
+        df['value'] = df['value']
+    else:
+        df['value'] = df['value'] * 100
     ax = df.plot(kind='line', x='time_series', y='value', fontsize=13)
     ax.set_alpha(0.8)
     # ax.set_title("Consumo", fontsize=22)
@@ -35,7 +39,7 @@ def plot_barh_chart(data):
 
     df = pd.DataFrame(data)
     df = df.replace(np.nan, 0)
-    df = df.groupby(['criticity'])['value'].sum()
+    df = (df.groupby(['criticity'])['value'].count() / len(df)) * 100
     ax = df.plot(kind='barh', color=[
                  "indigo", "red", "green", "orange"], fontsize=13)
     ax.set_alpha(0.8)
