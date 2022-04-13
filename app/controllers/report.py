@@ -4,6 +4,7 @@ from flask_restful import Resource
 
 
 from app.entities.cpu import CpuUsage
+from app.entities.ram import JvmMemoryUsage
 from app.services.image_uploader import ImageUploader
 from app.services.mailer import Mailer
 from app.services.monitoramento import Monitoramento
@@ -17,7 +18,7 @@ class Report(Resource):
         uploader = ImageUploader()
         try:
 
-            metricas = [CpuUsage, CpuUsage, CpuUsage, CpuUsage, CpuUsage]
+            metricas = [CpuUsage, JvmMemoryUsage, CpuUsage, CpuUsage, CpuUsage]
             data = []
             image_paths = []
 
