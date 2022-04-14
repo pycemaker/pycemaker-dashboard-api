@@ -127,6 +127,57 @@ class Mailer:
                 {}
                 </ul>
 
+            </body>
+        </html>
+        """.format(self.format_date_2(data_inicial_atual), self.format_date_2(data_final_atual),
+                   image_paths[0], image_paths[1], round(
+                       data[0]['growth'] * 100, 2), round(data[0]['mean'] * 100, 2),
+                   self.generate_picos(data[0]['higher'], "Máximo", "%"),
+                   self.generate_picos(data[0]['lower'], "Mínimo", "%"),
+                   image_paths[2], image_paths[3], round(
+                       data[1]['growth'] * 100, 2), round(data[1]['mean'], 2),
+                   self.generate_picos(data[1]['higher'], "Máximo", "%", True),
+                   self.generate_picos(data[1]['lower'], "Mínimo", "%", True))
+
+        return html_body
+
+    def generate_report_backup(self, data, image_paths, date_now, time_range):
+
+        data_final_atual = datetime.datetime.strptime(
+            date_now, '%d-%m-%Y-%H-%M-%S')
+        data_inicial_atual = data_final_atual - \
+            datetime.timedelta(hours=int(time_range))
+
+        html_body = """\
+        <!DOCTYPE html>
+        <html>
+            <body>
+                <h1>Relatório Periódico</h1>
+                <p>Período analisado: {} - {}</p>
+                <p>Visualize em tempo real: <a href="https://www.google.com.br">Pycemaker Dashboard</a></p>
+
+                <h2>Consumo de CPU</h2>
+                <img src={}><br>
+                <img src={}><br>
+                <p>Crescimento ou Diminuição: {}%</p>
+                <p>Média de Uso: {}%</p>
+                <p>Picos de Uso:</p>
+                <ul>
+                {}
+                {}
+                </ul>
+
+                <h2>Consumo de RAM</h2>
+                <img src={}><br>
+                <img src={}><br>
+                <p>Crescimento ou Diminuição: {}%</p>
+                <p>Média de Uso: {}%</p>
+                <p>Picos de Uso:</p>
+                <ul>
+                {}
+                {}
+                </ul>
+
                 <h2>Consumo de Disco</h2>
                 <img src={}><br>
                 <img src={}><br>
