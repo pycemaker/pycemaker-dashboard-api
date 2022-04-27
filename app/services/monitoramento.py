@@ -1,4 +1,5 @@
 import json
+from time import sleep
 import numpy as np
 import datetime
 import pandas as pd
@@ -136,3 +137,65 @@ class Monitoramento:
         df = df.to_json(orient="table")
         parsed = json.loads(df)
         return parsed['data']
+
+    def get_prediction_data(self):
+
+        import random
+
+        def generate_predict(min, max):
+            result = random.randint(min, max)
+            return result / 10
+
+        predict = [generate_predict(2, 8) for x in range(0, 20)]
+
+        dados1 = [{
+            "id": i+1,
+            "time_series": self.addSecs(),
+            "value": random.random(),
+            "predict_range":  [predict[i] - 1, predict[i] + 1],
+            "predict_value": predict[i]
+        } for i in range(0, 10)]
+
+        df = pd.DataFrame(dados1)
+        df['time_series'] = pd.to_datetime(df['time_series'])
+        df = df.to_json(orient="table")
+        dados1 = json.loads(df)
+
+        dados2 = [{
+            "id": i+10,
+            "time_series": self.addSecs(),
+            "predict_range":  [predict[10+i] - 2, predict[10+i] + 2],
+            "predict_value": predict[10+i]
+        } for i in range(0, 10)]
+
+        df = pd.DataFrame(dados2)
+        df['time_series'] = pd.to_datetime(df['time_series'])
+        df = df.to_json(orient="table")
+        dados2 = json.loads(df)
+
+        return {"data": dados1['data'] + dados2['data'], "last_time_series": dados1['data'][-1]["time_series"],
+                "date": self.data_final_atual}
+
+    def get_random_data(self):
+
+        import random
+
+        dados = [{
+            "id": i+1,
+            "time_series": self.addSecs(),
+            "value": random.random()
+        } for i in range(0, 1)]
+
+        df = pd.DataFrame(dados)
+        df['time_series'] = pd.to_datetime(df['time_series'])
+        df = df.to_json(orient="table")
+        dados = json.loads(df)
+
+        return dados['data']
+
+    def addSecs(self):
+            sleep(0.2)
+            t = datetime.datetime.now()
+            t1 = datetime.timedelta(seconds=3)
+            t = t + t1
+            return t.isoformat()
