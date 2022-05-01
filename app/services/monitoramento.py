@@ -142,31 +142,41 @@ class Monitoramento:
 
         import random
 
-        def generate_predict(min, max):
-            result = random.randint(min, max)
-            return result / 10
+        dados1 = []
+        dados2 = []
+        t = datetime.datetime.now()
 
-        predict = [generate_predict(2, 8) for x in range(0, 20)]
+        # def generate_predict(min, max):
+        #     result = random.randint(min, max)
+        #     return result / 10
 
-        dados1 = [{
-            "id": i+1,
-            "time_series": self.addSecs(),
-            "value": random.random(),
-            "predict_range":  [predict[i] - 1, predict[i] + 1],
-            "predict_value": predict[i]
-        } for i in range(0, 10)]
+        predict = [random.randint(2, 8) / 10 for x in range(0, 20)]
+
+        for i in range(0, 10):
+            t = t + datetime.timedelta(seconds=3)
+            row = {
+                "id": i+1,
+                "time_series": t,
+                "value": random.randint(3, 7) / 10,
+                "predict_range":  [predict[i] - 0.3, predict[i] + 0.3],
+                "predict_value": predict[i]
+            }
+            dados1.append(row)
+
+        for i in range(0, 10):
+            t = t + datetime.timedelta(seconds=3)
+            row = {
+                "id": i+10,
+                "time_series": t,
+                "predict_range":  [predict[10+i] - 0.5, predict[10+i] + 0.5],
+                "predict_value": predict[10+i]
+            }
+            dados2.append(row)
 
         df = pd.DataFrame(dados1)
         df['time_series'] = pd.to_datetime(df['time_series'])
         df = df.to_json(orient="table")
         dados1 = json.loads(df)
-
-        dados2 = [{
-            "id": i+10,
-            "time_series": self.addSecs(),
-            "predict_range":  [predict[10+i] - 2, predict[10+i] + 2],
-            "predict_value": predict[10+i]
-        } for i in range(0, 10)]
 
         df = pd.DataFrame(dados2)
         df['time_series'] = pd.to_datetime(df['time_series'])
@@ -180,10 +190,13 @@ class Monitoramento:
 
         import random
 
+        t = datetime.datetime.now()
+        t = t + datetime.timedelta(seconds=3)
+
         dados = [{
             "id": i+1,
-            "time_series": self.addSecs(),
-            "value": random.random()
+            "time_series": t,
+            "value": random.randint(3, 7) / 10
         } for i in range(0, 1)]
 
         df = pd.DataFrame(dados)
@@ -194,8 +207,8 @@ class Monitoramento:
         return dados['data']
 
     def addSecs(self):
-            sleep(0.2)
-            t = datetime.datetime.now()
-            t1 = datetime.timedelta(seconds=3)
-            t = t + t1
-            return t.isoformat()
+        sleep(0.2)
+        t = datetime.datetime.now()
+        t1 = datetime.timedelta(seconds=3)
+        t = t + t1
+        return t.isoformat()

@@ -31,7 +31,7 @@ def create_routes(api: Api):
 
     api.add_resource(Report, '/report/<date_now>/<time_range>/<email_to>')
 
-    do_this_first()
+    # do_this_first()
     api.add_resource(listar, '/listar')
     api.add_resource(adicionar, '/adicionar/<job>')
     api.add_resource(remover, '/remover/<job>')
