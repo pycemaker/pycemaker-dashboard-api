@@ -3,12 +3,9 @@ import json
 import time
 from datetime import date, datetime
 from pathlib import Path
-
 import pandas as pd
 import requests
-from bson.json_util import dumps
 from hurry.filesize import si, size
-from pymongo import MongoClient
 
 
 class Pycemaker:

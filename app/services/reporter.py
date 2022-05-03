@@ -1,3 +1,4 @@
+from datetime import datetime
 import sys
 import traceback
 from flask import jsonify
@@ -12,7 +13,7 @@ from app.services.plot_generator import plot_barh_chart, plot_line_chart
 class Reporter:
 
     def __init__(self, date_now, time_range, email_to):
-        self.date_now = date_now
+        self.date_now = datetime.now().strftime('%d-%m-%Y-%H-%M-%S') # remover
         self.time_range = time_range
         self.email_to = email_to
         self.data = []
@@ -23,11 +24,13 @@ class Reporter:
 
     def get_report(self):
 
+        uploader = ImageUploader()
+
         try:
 
-            uploader = ImageUploader()
-
             for k, v in enumerate(self.metricas):
+
+                self.date_now = datetime.now().strftime('%d-%m-%Y-%H-%M-%S')
 
                 monitorar = Monitoramento(v, self.date_now, self.time_range)
                 dados = monitorar.get_data()
@@ -48,6 +51,7 @@ class Reporter:
             html_body = mailer.generate_report(
                 self.data, self.image_paths, self.date_now, self.time_range)
             mailer = mailer.dispatch_email(html_body)
+            uploader.close()
 
             return "Relatório enviado com sucesso!"
 

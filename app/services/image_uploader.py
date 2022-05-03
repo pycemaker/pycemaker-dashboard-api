@@ -1,3 +1,4 @@
+import json
 import os
 import random
 import string
@@ -9,8 +10,10 @@ import os
 class ImageUploader:
 
     def __init__(self):
-        self.firebase_settings = os.path.dirname(os.path.dirname(
-            os.path.dirname(os.path.abspath(__file__)))) + "/firebase-settings.json"
+        self.firebase_settings = json.loads(
+            os.environ.get("FIREBASE_SETTINGS"))
+        # self.firebase_settings = os.path.dirname(os.path.dirname(
+        #     os.path.dirname(os.path.abspath(__file__)))) + "/firebase-settings.json"
         self.cred = credentials.Certificate(self.firebase_settings)
         self.app = initialize_app(
             self.cred, {'storageBucket': 'pycemaker.appspot.com'})

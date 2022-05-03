@@ -1,27 +1,30 @@
 # flask packages
+from .routes import create_routes
+import os
 from flask import Flask, app
 from flask_restful import Api
 from flask_mongoengine import MongoEngine
 from flask_jwt_extended import JWTManager
 from flask_cors import CORS
+from dotenv import load_dotenv
+
+load_dotenv('.env')
 
 # local packages
-from .routes import create_routes
 
 # external packages
-import os
 
 # default mongodb configuration
-default_config = {'MONGODB_SETTINGS': {
-    'db': 'pycemaker',
-    'host': 'localhost',
-    'port': 27017,
-    # 'username': 'admin',
-    # 'password': 'password',
-    # 'authentication_source': 'admin'
-    'tz_aware': True
-},
-    'JWT_SECRET_KEY': 'timaceitadoacoes'}
+# default_config = {'MONGODB_SETTINGS': {
+#     'db': 'pycemaker',
+#     'host': 'localhost',
+#     'port': 27017,
+#     # 'username': 'admin',
+#     # 'password': 'password',
+#     # 'authentication_source': 'admin'
+#     'tz_aware': True
+# },
+#     'JWT_SECRET_KEY': 'timaceitadoacoes'}
 
 
 def get_flask_app(config: dict = None) -> app.Flask:
@@ -35,15 +38,19 @@ def get_flask_app(config: dict = None) -> app.Flask:
     flask_app = Flask(__name__)
 
     # configure app
-    config = default_config if config is None else config
-    flask_app.config.update(config)
+    # config = default_config if config is None else config
+    # flask_app.config.update(config)
 
     # load config variables
-    if 'MONGODB_URI' in os.environ:
-        flask_app.config['MONGODB_SETTINGS'] = {'host': os.environ['MONGODB_URI'],
-                                                'retryWrites': False}
-    if 'JWT_SECRET_KEY' in os.environ:
-        flask_app.config['JWT_SECRET_KEY'] = os.environ['JWT_SECRET_KEY']
+    # if 'MONGODB_URI' in os.environ:
+    #     flask_app.config['MONGODB_SETTINGS'] = {'host': os.environ['MONGODB_URI'],
+    #                                             'retryWrites': False}
+    # if 'JWT_SECRET_KEY' in os.environ:
+    #     flask_app.config['JWT_SECRET_KEY'] = os.environ['JWT_SECRET_KEY']
+
+    flask_app.config['MONGODB_HOST'] = os.environ.get("MONGO_DB_URL")
+
+    flask_app.config['JWT_SECRET_KEY'] = os.environ.get("JWT_SECRET_KEY")
 
     # init api and routes
     api = Api(app=flask_app)

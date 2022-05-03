@@ -3,12 +3,12 @@ import smtplib
 import os
 from email.message import EmailMessage
 from email.mime.image import MIMEImage
-from dotenv import load_dotenv
+# from dotenv import load_dotenv
 from dateutil import parser
-import locale
-locale.setlocale(locale.LC_ALL, "pt_br")
+# import locale
+# locale.setlocale(locale.LC_ALL, "pt_br")
 
-load_dotenv('.env')
+# load_dotenv('.env')
 
 
 class Mailer:

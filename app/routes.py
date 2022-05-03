@@ -1,6 +1,6 @@
 from flask_restful import Api
 
-from .controllers.job import adicionar, do_this_first, listar, new_job, remover
+from .controllers.job import ModifyReport, ListJobs, ScheduleMonitor, RemoveJob, ScheduleReport
 from .controllers.cpu import CpuCurrentConsume, CpuIntervalConsume, CpuIntervalPrediction, CpuRandomPrediction
 from .controllers.ram import RamCurrentConsume, RamIntervalConsume
 from .controllers.disk import DiskCurrentConsume, DiskIntervalConsume
@@ -31,8 +31,8 @@ def create_routes(api: Api):
 
     api.add_resource(Report, '/report/<date_now>/<time_range>/<email_to>')
 
-    # do_this_first()
-    api.add_resource(listar, '/listar')
-    api.add_resource(adicionar, '/adicionar/<job>')
-    api.add_resource(remover, '/remover/<job>')
-    api.add_resource(new_job, '/new_job')
+    api.add_resource(ListJobs, '/jobs')
+    api.add_resource(ScheduleReport, '/jobs/schedule_report')
+    api.add_resource(ModifyReport, '/jobs/modify_report')
+    api.add_resource(RemoveJob, '/jobs/remove/<job>')
+    api.add_resource(ScheduleMonitor, '/jobs/schedule_monitor')
