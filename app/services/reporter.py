@@ -12,8 +12,8 @@ from app.services.plot_generator import plot_barh_chart, plot_line_chart
 
 class Reporter:
 
-    def __init__(self, date_now, time_range, email_to):
-        self.date_now = datetime.now().strftime('%d-%m-%Y-%H-%M-%S') # remover
+    def __init__(self, time_range, email_to):
+        # self.date_now = datetime.now().strftime('%d-%m-%Y-%H-%M-%S') # remover
         self.time_range = time_range
         self.email_to = email_to
         self.data = []
@@ -30,9 +30,9 @@ class Reporter:
 
             for k, v in enumerate(self.metricas):
 
-                self.date_now = datetime.now().strftime('%d-%m-%Y-%H-%M-%S')
+                date_now = datetime.now().strftime('%d-%m-%Y-%H-%M-%S')
 
-                monitorar = Monitoramento(v, self.date_now, self.time_range)
+                monitorar = Monitoramento(v, date_now, self.time_range)
                 dados = monitorar.get_data()
                 self.data.append(dados)
 
@@ -49,7 +49,7 @@ class Reporter:
             assunto = 'Pycemaker - Relatório Periódico'
             mailer = Mailer(self.email_to, assunto)
             html_body = mailer.generate_report(
-                self.data, self.image_paths, self.date_now, self.time_range)
+                self.data, self.image_paths, date_now, self.time_range)
             mailer = mailer.dispatch_email(html_body)
             uploader.close()
 
