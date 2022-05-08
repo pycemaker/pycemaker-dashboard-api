@@ -33,7 +33,7 @@ class Reporter:
                 date_now = datetime.now().strftime('%d-%m-%Y-%H-%M-%S')
 
                 monitorar = Monitoramento(v, date_now, self.time_range)
-                dados = monitorar.get_data()
+                dados = monitorar.get_current_data()
                 self.data.append(dados)
 
                 buf = plot_line_chart(dados['data'], self.isPercentage[k])

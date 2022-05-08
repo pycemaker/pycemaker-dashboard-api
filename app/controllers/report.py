@@ -27,7 +27,7 @@ class ReportTest(Resource):
             for x in metricas:
 
                 monitorar = Monitoramento(x, date_now, time_range)
-                dados = monitorar.get_data()
+                dados = monitorar.get_interval_data()
                 data.append(dados)
 
                 buf = plot_line_chart(dados['data'])

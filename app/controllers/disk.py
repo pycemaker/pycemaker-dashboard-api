@@ -13,10 +13,10 @@ class DiskIntervalConsume(Resource):
 
         try:
             data = Monitoramento(DiskUsage, date_now, time_range)
-            data = data.get_data()
+            data = data.get_interval_data()
             return jsonify(data)
         except Exception:
-            traceback.print_exc()
+            # traceback.print_exc()
             return jsonify({'msg': "Nenhum dado encontrado"})
 
 

@@ -84,7 +84,7 @@ class JobsApi(Resource):
             return data, 400
 
 
-class JobApi(Resource):
+class RemoveJob(Resource):
 
     def get(self, job) -> Response:
         scheduler.remove_job(job)

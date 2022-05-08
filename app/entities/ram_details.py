@@ -1,9 +1,9 @@
 from mongoengine import Document, StringField, DateTimeField
 
 
-class CpuUsage(Document):
-    consume_percent = StringField()
+class JvmMemoryUsageDetails(Document):
     time_series = StringField()
     convert_timeseries = StringField()
-    criticity = StringField()
+    jvm_memory_area_id = StringField()
     value = StringField()
+    jvm_memory_area = StringField()

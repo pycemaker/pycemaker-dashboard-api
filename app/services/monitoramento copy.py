@@ -30,23 +30,38 @@ class Monitoramento:
         self.data_inicial_anterior = self.data_inicial_atual - \
             datetime.timedelta(hours=int(time_range))
 
-    def transform_data(self):
-        """Busca no banco todos os dados de consumo e converte para os tipos desejados.
+    def transform_data(self, data_inicial, data_final):
+        """Busca no banco os dados dentro de um intervalo de tempo.
+
+        Args:
+            data_inicial (datetime): Datetime inicial do intervalo.
+            data_final (datetime): Datetime final do intervalo.
 
         Returns:
             list: Lista com todos os dados encontrados.
         """
 
-        # classe_do_dado = self.classe_do_dado
-        # dados = classe_do_dado.objects(
-        #     time_series__gte=data_inicial, time_series__lte=data_final)
+        classe_do_dado = self.classe_do_dado
+        dados = classe_do_dado.objects(
+            time_series__gte=data_inicial, time_series__lte=data_final)
 
-        # dados = [x.to_mongo() for x in dados]
-        # dados = [x.to_dict() for x in dados]
+        dados = [x.to_mongo() for x in dados]
+        dados = [x.to_dict() for x in dados]
 
-        # [d.update({"value": float(d["value"])}) for d in dados]
-        # [d.update({"_id": str(d["_id"])}) for d in dados]
-        # return dados
+        [d.update({"value": float(d["value"])}) for d in dados]
+        [d.update({"_id": str(d["_id"])}) for d in dados]
+        return dados
+
+    def pandas_transform_data(self, data_inicial, data_final):
+        """Busca no banco todos os dados de consumo, converte para os tipos desejados e filtra dentro de um intervalo de tempo.
+
+        Args:
+            data_inicial (datetime): Datetime inicial do intervalo.
+            data_final (datetime): Datetime final do intervalo.
+
+        Returns:
+            list: Lista com todos os dados encontrados.
+        """
 
         classe_do_dado = self.classe_do_dado
         # dados = classe_do_dado.objects(
@@ -63,8 +78,48 @@ class Monitoramento:
 
         df = pd.DataFrame(dados)
         df['time_series'] = pd.to_datetime(df['time_series'])
+        df = df[(df['time_series'] >= data_inicial)
+                & (df['time_series'] <= data_final)]
+        df = df.to_json(orient="table")
+        parsed = json.loads(df)
+        return parsed['data']
 
-        return df
+    def pandas_transform_ram_details_data(self, data_inicial, data_final):
+        """Busca no banco todos os dados de consumo de memória, converte para os tipos desejados,
+        filtra dentro de um intervalo de tempo e agrupa por heap e nonheap.
+
+        Args:
+            data_inicial (datetime): Datetime inicial do intervalo.
+            data_final (datetime): Datetime final do intervalo.
+
+        Returns:
+            list: Lista com todos os dados encontrados.
+        """
+
+        classe_do_dado = self.classe_do_dado
+        # dados = classe_do_dado.objects(
+        #     time_series__gte=data_inicial, time_series__lte=data_final)
+        dados = classe_do_dado.objects
+
+        dados = [x.to_mongo() for x in dados]
+        dados = [x.to_dict() for x in dados]
+
+        [d.update({"value": float(d["value"])}) for d in dados]
+        [d.update({"_id": str(d["_id"])}) for d in dados]
+        [d.update({"time_series": self.convert_date(
+            (d["time_series"][:-2]).replace(".", ""))}) for d in dados]
+
+        df = pd.DataFrame(dados)
+        df['time_series'] = pd.to_datetime(df['time_series'])
+        df = df[(df['time_series'] >= data_inicial)
+                & (df['time_series'] <= data_final)]
+        df = df[['time_series', 'jvm_memory_area', 'value']]
+        df = df.groupby(['time_series', 'jvm_memory_area'])[['value']].sum()
+        df = df.unstack(level=-1)
+        df.columns = df.columns.get_level_values(1).rename(None)
+        df = df.to_json(orient="table")
+        parsed = json.loads(df)
+        return parsed['data']
 
     def get_mean(self, dados):
         """Calcula a média a partir de uma lista de dados.
@@ -88,12 +143,10 @@ class Monitoramento:
             list: Lista filtrada com os maiores valores.
         """
 
-        if (self.dados_atuais):
-            higher = max(self.dados_atuais, key=lambda x: x[self.nome_do_dado])
-            all_higher = [x for x in self.dados_atuais if x[self.nome_do_dado]
-                          == higher[self.nome_do_dado]]
-            return all_higher
-        return []
+        higher = max(self.dados_atuais, key=lambda x: x[self.nome_do_dado])
+        all_higher = [x for x in self.dados_atuais if x[self.nome_do_dado]
+                      == higher[self.nome_do_dado]]
+        return all_higher
 
     def get_lower(self):
         """Filtra todos os menores valores a partir de uma lista de dados.
@@ -102,12 +155,10 @@ class Monitoramento:
             list: Lista filtrada com os menores valores.
         """
 
-        if (self.dados_atuais):
-            lower = min(self.dados_atuais, key=lambda x: x[self.nome_do_dado])
-            all_lower = [x for x in self.dados_atuais if x[self.nome_do_dado]
-                         == lower[self.nome_do_dado]]
-            return all_lower
-        return []
+        lower = min(self.dados_atuais, key=lambda x: x[self.nome_do_dado])
+        all_lower = [x for x in self.dados_atuais if x[self.nome_do_dado]
+                     == lower[self.nome_do_dado]]
+        return all_lower
 
     def get_growth(self, mean_atual, mean_anterior):
         """Calcula o crescimento médio da lista de dados do intervalo atual.
@@ -132,14 +183,12 @@ class Monitoramento:
             list: Lista de classificação de dados.
         """
 
-        if (self.dados_atuais):
-            df = pd.DataFrame(self.dados_atuais)
-            df = df.replace(np.nan, 0)
-            df = df.groupby(['criticity'])['value'].count() / len(df)
-            df = df.to_json(orient="table")
-            parsed = json.loads(df)
-            return parsed['data']
-        return []
+        df = pd.DataFrame(self.dados_atuais)
+        df = df.replace(np.nan, 0)
+        df = df.groupby(['criticity'])['value'].count() / len(df)
+        df = df.to_json(orient="table")
+        parsed = json.loads(df)
+        return parsed['data']
 
     def convert_date(self, date):
         """Converte uma string de milisegundos para datetime.
@@ -158,41 +207,7 @@ class Monitoramento:
 
         return converted_date
 
-    def find_data_interval(self, data_inicial, data_final):
-        """Filtra uma lista de dados dentro de um intervalo de tempo.
-
-        Args:
-            data_inicial (datetime): Data/Hora inicial do intervalo.
-            data_final (datetime): Data/Hora final do intervalo.
-
-        Returns:
-            list: Lista com os dados encontrados.
-        """
-
-        df = self.transform_data()
-        df = df[(df['time_series'] >= data_inicial)
-                & (df['time_series'] <= data_final)]
-        df = df.to_json(orient="table")
-        parsed = json.loads(df)
-        return parsed['data']
-
-    def find_current_data(self, data_inicial):
-        """Filtra uma lista de dados a partir de uma data.
-
-        Args:
-            data_inicial (datetime): Data/Hora inicial do intervalo.
-
-        Returns:
-            list: Lista com os dados encontrados.
-        """
-
-        df = self.transform_data()
-        df = df[df['time_series'] >= data_inicial]
-        df = df.to_json(orient="table")
-        parsed = json.loads(df)
-        return parsed['data']
-
-    def get_interval_data(self):
+    def get_data(self):
         """Procedimento que retorna uma lista de dados de um intervalo, uma lista de dados do intervalo anterior ao atual,
         a média do intervalo atual, a média do intervalo anterior, uma lista de dados com os menores dados, uma
         lista de dados com os maiores dados, o crescimento médio do intervalo atual, uma lista de classificação dos dados
@@ -202,9 +217,9 @@ class Monitoramento:
             dict: Dicionário com todos os resultados obtidos.
         """
 
-        self.dados_atuais = self.find_data_interval(
+        self.dados_atuais = self.pandas_transform_data(
             self.data_inicial_atual, self.data_final_atual)
-        self.dados_anteriores = self.find_data_interval(
+        self.dados_anteriores = self.pandas_transform_data(
             self.data_inicial_anterior, self.data_inicial_atual)
 
         mean_atual = self.get_mean(self.dados_atuais)
@@ -226,37 +241,47 @@ class Monitoramento:
                           self.data_inicial_anterior]}
 
     def get_current_data(self):
-        """Procedimento que retorna uma lista de dados a partir de uma data.
+        """Busca no banco todos os dados de consumo, converte para os tipos desejados e
+        filtra a partir de uma data.
 
         Returns:
             list: Lista com os dados encontrados.
         """
 
-        dados = self.find_current_data(self.data_final_atual)
+        classe_do_dado = self.classe_do_dado
+        # dados = classe_do_dado.objects(
+        #     time_series__gte=data_inicial)
+        dados = classe_do_dado.objects
 
-        return dados
+        dados = [x.to_mongo() for x in dados]
+        dados = [x.to_dict() for x in dados]
 
-    # def get_interval_ram_details_data(self):
-    #     """Procedimento que retorna uma lista de dados de consumo de memória agrupados por heap e nonheap,
-    #     e as datas do intervalo buscado.
+        [d.update({"value": float(d["value"])}) for d in dados]
+        [d.update({"_id": str(d["_id"])}) for d in dados]
+        [d.update({"time_series": self.convert_date(
+            (d["time_series"][:-2]).replace(".", ""))}) for d in dados]
 
-    #     Returns:
-    #         dict: Dicionário com todos os resultados obtidos.
-    #     """
+        df = pd.DataFrame(dados)
+        df['time_series'] = pd.to_datetime(df['time_series'])
+        df = df[df['time_series'] >= self.data_final_atual]
+        df = df.to_json(orient="table")
+        parsed = json.loads(df)
+        return parsed['data']
 
-    #     df = self.transform_data()
-    #     df = df[(df['time_series'] >= self.data_inicial_atual)
-    #             & (df['time_series'] <= self.data_final_atual)]
-    #     df = df[['time_series', 'jvm_memory_area', 'value']]
-    #     df = df.groupby(['time_series', 'jvm_memory_area'])[['value']].sum()
-    #     df = df.unstack(level=-1)
-    #     df.columns = df.columns.get_level_values(1).rename(None)
-    #     df = df.to_json(orient="table")
-    #     parsed = json.loads(df)
+    def get_ram_details_data(self):
+        """Procedimento que retorna uma lista de dados de consumo de memória agrupados por heap e nonheap,
+        e as datas do intervalo buscado.
 
-    #     return {'data': parsed,
-    #             'datas': [self.data_final_atual, self.data_inicial_atual]
-    #             }
+        Returns:
+            dict: Dicionário com todos os resultados obtidos.
+        """
+
+        self.dados_atuais = self.pandas_transform_ram_details_data(
+            self.data_inicial_atual, self.data_final_atual)
+
+        return {'data': self.dados_atuais,
+                'datas': [self.data_final_atual, self.data_inicial_atual]
+                }
 
     def get_current_ram_details_data(self):
         """Busca no banco todos os dados de consumo de memória, converte para os tipos desejados,
@@ -266,7 +291,21 @@ class Monitoramento:
             list: Lista com todos os dados encontrados.
         """
 
-        df = self.transform_data()
+        classe_do_dado = self.classe_do_dado
+        # dados = classe_do_dado.objects(
+        #     time_series__gte=data_inicial)
+        dados = classe_do_dado.objects
+
+        dados = [x.to_mongo() for x in dados]
+        dados = [x.to_dict() for x in dados]
+
+        [d.update({"value": float(d["value"])}) for d in dados]
+        [d.update({"_id": str(d["_id"])}) for d in dados]
+        [d.update({"time_series": self.convert_date(
+            (d["time_series"][:-2]).replace(".", ""))}) for d in dados]
+
+        df = pd.DataFrame(dados)
+        df['time_series'] = pd.to_datetime(df['time_series'])
         df = df[df['time_series'] >= self.data_final_atual]
         df = df[['time_series', 'jvm_memory_area', 'value']]
         df = df.groupby(['time_series', 'jvm_memory_area'])[['value']].sum()
@@ -285,26 +324,24 @@ class Monitoramento:
 
         lista = self.get_current_ram_details_data()
 
-        if lista:
-            heap_max = requests.get("https://pcm-prometheus.herokuapp.com/api/v1/query", params={
-                'query': 'sum(jvm_memory_max_bytes{area="heap"})'})
-            heap_max = heap_max.json()
-            heap_max = heap_max['data']['result'][0]['value'][1]
+        heap_max = requests.get("https://pcm-prometheus.herokuapp.com/api/v1/query", params={
+            'query': 'sum(jvm_memory_max_bytes{area="heap"})'})
+        heap_max = heap_max.json()
+        heap_max = heap_max['data']['result'][0]['value'][1]
 
-            value_atual = lista[-1]["heap"]
-            value_restante = float(heap_max) - float(value_atual)
+        value_atual = lista[-1]["heap"]
+        value_restante = float(heap_max) - float(value_atual)
 
-            return [
-                {
-                    "name": 'heap_atual',
-                    "value": value_atual
-                },
-                {
-                    "name": 'heap_restante',
-                    "value": value_restante
-                }
-            ]
-        return []
+        return [
+            {
+                "name": 'heap_atual',
+                "value": value_atual
+            },
+            {
+                "name": 'heap_restante',
+                "value": value_restante
+            }
+        ]
 
     def get_current_nonheap_data(self):
         """Procedimento que retorna o consumo atual de nonheap e o consumo restante disponível.
@@ -315,26 +352,24 @@ class Monitoramento:
 
         lista = self.get_current_ram_details_data()
 
-        if lista:
-            nonheap_max = requests.get("https://pcm-prometheus.herokuapp.com/api/v1/query", params={
-                'query': 'sum(jvm_memory_max_bytes{area="nonheap"})'})
-            nonheap_max = nonheap_max.json()
-            nonheap_max = nonheap_max['data']['result'][0]['value'][1]
+        nonheap_max = requests.get("https://pcm-prometheus.herokuapp.com/api/v1/query", params={
+            'query': 'sum(jvm_memory_max_bytes{area="nonheap"})'})
+        nonheap_max = nonheap_max.json()
+        nonheap_max = nonheap_max['data']['result'][0]['value'][1]
 
-            value_atual = lista[-1]["nonheap"]
-            value_restante = float(nonheap_max) - float(value_atual)
+        value_atual = lista[-1]["nonheap"]
+        value_restante = float(nonheap_max) - float(value_atual)
 
-            return [
-                {
-                    "name": 'nonheap_atual',
-                    "value": value_atual
-                },
-                {
-                    "name": 'nonheap_restante',
-                    "value": value_restante
-                }
-            ]
-        return []
+        return [
+            {
+                "name": 'nonheap_atual',
+                "value": value_atual
+            },
+            {
+                "name": 'nonheap_restante',
+                "value": value_restante
+            }
+        ]
 
     def get_prediction_data(self):
         """Procedimento que retorna uma lista de dados de um intervalo de tempo com a previsão para esse intervalo
