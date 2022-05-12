@@ -4,6 +4,7 @@ import numpy as np
 import datetime
 import pandas as pd
 import requests
+from mongoengine import Q
 
 
 class Monitoramento:
@@ -168,13 +169,35 @@ class Monitoramento:
         Returns:
             list: Lista com os dados encontrados.
         """
+        
 
-        df = self.transform_data()
-        df = df[(df['time_series'] >= data_inicial)
-                & (df['time_series'] <= data_final)]
-        df = df.to_json(orient="table")
-        parsed = json.loads(df)
-        return parsed['data']
+        # data_final = datetime.datetime.utcnow() # The end date
+        # data_inicial = data_final - datetime.timedelta(days=120) # The start date
+        # print(data_inicial, data_final)
+
+        classe_do_dado = self.classe_do_dado
+        dados = classe_do_dado.objects(time_series__gte=data_inicial, time_series__lte=data_final)
+
+        # print(dados)
+
+        dados = [x.to_mongo() for x in dados]
+        dados = [x.to_dict() for x in dados]
+
+        [d.update({"_id": str(d["_id"])}) for d in dados]
+
+        # df = pd.DataFrame(dados)
+        
+        # df['time_series'] = pd.to_datetime(df['time_series'])
+
+        # print(dados)
+
+        # df = self.transform_data()
+        # df = df[(df['time_series'] >= data_inicial)
+        #         & (df['time_series'] <= data_final)]
+        # df = df.to_json(orient="table")
+        # parsed = json.loads(df)
+        # return parsed['data']
+        return dados
 
     def find_current_data(self, data_inicial):
         """Filtra uma lista de dados a partir de uma data.
@@ -186,11 +209,28 @@ class Monitoramento:
             list: Lista com os dados encontrados.
         """
 
-        df = self.transform_data()
-        df = df[df['time_series'] >= data_inicial]
-        df = df.to_json(orient="table")
-        parsed = json.loads(df)
-        return parsed['data']
+        classe_do_dado = self.classe_do_dado
+        dados = classe_do_dado.objects(
+            time_series__gte=data_inicial)
+
+        # dados = classe_do_dado.objects(Q(time_series__gte=data_inicial)).to_json()
+        
+       
+
+        dados = [x.to_mongo() for x in dados]
+        dados = [x.to_dict() for x in dados]
+
+        [d.update({"_id": str(d["_id"])}) for d in dados]
+
+        # df = pd.DataFrame(dados)
+        # df['time_series'] = pd.to_datetime(df['time_series'])
+
+        # df = self.transform_data()
+        # df = df[df['time_series'] >= data_inicial]
+        # df = df.to_json(orient="table")
+        # parsed = json.loads(df)
+        # return parsed['data']
+        return dados
 
     def get_interval_data(self):
         """Procedimento que retorna uma lista de dados de um intervalo, uma lista de dados do intervalo anterior ao atual,
@@ -258,6 +298,7 @@ class Monitoramento:
     #             'datas': [self.data_final_atual, self.data_inicial_atual]
     #             }
 
+    # NAO UTILIZAR
     def get_current_ram_details_data(self):
         """Busca no banco todos os dados de consumo de memória, converte para os tipos desejados,
         filtra a partir de uma data e agrupa por heap e nonheap.
@@ -276,6 +317,7 @@ class Monitoramento:
         parsed = json.loads(df)
         return parsed['data']
 
+    # NAO UTILIZAR
     def get_current_heap_data(self):
         """Procedimento que retorna o consumo atual de heap e o consumo restante disponível.
 
@@ -306,6 +348,7 @@ class Monitoramento:
             ]
         return []
 
+    # NAO UTILIZAR
     def get_current_nonheap_data(self):
         """Procedimento que retorna o consumo atual de nonheap e o consumo restante disponível.
 

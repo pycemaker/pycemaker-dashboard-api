@@ -3,8 +3,11 @@ import os
 import random
 import string
 import time
+from dotenv import load_dotenv
 from firebase_admin import credentials, initialize_app, delete_app, storage
 import os
+
+load_dotenv('.env')
 
 
 class ImageUploader:

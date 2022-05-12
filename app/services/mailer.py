@@ -84,13 +84,13 @@ class Mailer:
     #     return picos
 
     def format_date(self, date):
-        date = parser.parse(date)
+        # date = parser.parse(date)
         return date.strftime("%a, %d de %b, %H:%M:%S")
 
     def format_date_2(self, date):
         return date.strftime("%d/%m/%Y %H:%M")
 
-    def generate_report(self, data, image_paths, date_now, time_range):
+    def generate_report_old(self, data, image_paths, date_now, time_range):
 
         data_final_atual = datetime.datetime.strptime(
             date_now, '%d-%m-%Y-%H-%M-%S')
@@ -141,7 +141,7 @@ class Mailer:
 
         return html_body
 
-    def generate_report_backup(self, data, image_paths, date_now, time_range):
+    def generate_report(self, data, image_paths, date_now, time_range):
 
         data_final_atual = datetime.datetime.strptime(
             date_now, '%d-%m-%Y-%H-%M-%S')
@@ -178,11 +178,11 @@ class Mailer:
                 {}
                 </ul>
 
-                <h2>Consumo de Disco</h2>
+                <h2>Número de Requisições</h2>
                 <img src={}><br>
                 <img src={}><br>
                 <p>Crescimento ou Diminuição: {}%</p>
-                <p>Média de Uso: {}%</p>
+                <p>Média de Uso: {}</p>
                 <p>Picos de Uso:</p>
                 <ul>
                 {}
@@ -193,18 +193,7 @@ class Mailer:
                 <img src={}><br>
                 <img src={}><br>
                 <p>Crescimento ou Diminuição: {}%</p>
-                <p>Tempo Médio: {}ms</p>
-                <p>Picos de Uso:</p>
-                <ul>
-                {}
-                {}
-                </ul>
-
-                <h2>Total de Falhas HTTP</h2>
-                <img src={}><br>
-                <img src={}><br>
-                <p>Crescimento ou Diminuição: {}%</p>
-                <p>Média de Falhas: {}</p>
+                <p>Tempo Médio: {}s</p>
                 <p>Picos de Uso:</p>
                 <ul>
                 {}
@@ -218,21 +207,16 @@ class Mailer:
                    self.generate_picos(data[0]['higher'], "Máximo", "%"),
                    self.generate_picos(data[0]['lower'], "Mínimo", "%"),
                    image_paths[2], image_paths[3], round(
-                       data[1]['growth'] * 100, 2), round(data[1]['mean'], 2),
-                   self.generate_picos(data[1]['higher'], "Máximo", "%", True),
-                   self.generate_picos(data[1]['lower'], "Mínimo", "%", True),
+                       data[1]['growth'] * 100, 2), round(data[1]['mean'] * 100, 2),
+                   self.generate_picos(data[1]['higher'], "Máximo", "%"),
+                   self.generate_picos(data[1]['lower'], "Mínimo", "%"),
                    image_paths[4], image_paths[5], round(
-                       data[2]['growth'] * 100, 2), round(data[2]['mean'] * 100, 2),
-                   self.generate_picos(data[2]['higher'], "Máximo", "%"),
-                   self.generate_picos(data[2]['lower'], "Mínimo", "%"),
+                       data[2]['growth'] * 100, 2), round(data[2]['mean'], 2),
+                   self.generate_picos(data[2]['higher'], "Máximo", "", True),
+                   self.generate_picos(data[2]['lower'], "Mínimo", "", True),
                    image_paths[6], image_paths[7], round(
-                       data[3]['growth'] * 100, 2), round(data[3]['mean'] * 100, 2),
-                   self.generate_picos(data[3]['higher'], "Máximo", "ms"),
-                   self.generate_picos(data[3]['lower'], "Mínimo", "ms"),
-                   image_paths[8], image_paths[9], round(
-                       data[4]['growth'] * 100, 2), round(data[4]['mean'] * 100, 2),
-                   self.generate_picos(
-                       data[4]['higher'], "Máximo", " falhas"),
-                   self.generate_picos(data[4]['lower'], "Mínimo", " falhas"))
+                       data[3]['growth'] * 100, 2), round(data[3]['mean'], 2),
+                   self.generate_picos(data[3]['higher'], "Máximo", "s", True),
+                   self.generate_picos(data[3]['lower'], "Mínimo", "s", True))
 
         return html_body
