@@ -169,15 +169,17 @@ class Monitoramento:
         Returns:
             list: Lista com os dados encontrados.
         """
-        
 
         # data_final = datetime.datetime.utcnow() # The end date
         # data_inicial = data_final - datetime.timedelta(days=120) # The start date
-        # print(data_inicial, data_final)
+        data_final = data_final + datetime.timedelta(hours=3)
+        data_inicial = data_inicial + datetime.timedelta(hours=3)
+        print(data_inicial, data_final)
 
         classe_do_dado = self.classe_do_dado
-        dados = classe_do_dado.objects(time_series__gte=data_inicial, time_series__lte=data_final)
-
+        dados = classe_do_dado.objects(
+            time_series__gte=data_inicial, time_series__lte=data_final)
+        print(dados._query)
         # print(dados)
 
         dados = [x.to_mongo() for x in dados]
@@ -186,7 +188,7 @@ class Monitoramento:
         [d.update({"_id": str(d["_id"])}) for d in dados]
 
         # df = pd.DataFrame(dados)
-        
+
         # df['time_series'] = pd.to_datetime(df['time_series'])
 
         # print(dados)
@@ -212,10 +214,9 @@ class Monitoramento:
         classe_do_dado = self.classe_do_dado
         dados = classe_do_dado.objects(
             time_series__gte=data_inicial)
+        print(dados._query)
 
         # dados = classe_do_dado.objects(Q(time_series__gte=data_inicial)).to_json()
-        
-       
 
         dados = [x.to_mongo() for x in dados]
         dados = [x.to_dict() for x in dados]

@@ -17,6 +17,11 @@ def get_flask_app(config: dict = None) -> app.Flask:
 
     flask_app.config['MONGODB_HOST'] = os.environ.get("MONGO_DB_URL")
 
+    # flask_app.config['MONGODB_SETTINGS'] = {
+    #     'host': os.environ.get("MONGO_DB_URL"),
+    #     'tz_aware': True
+    # }
+
     flask_app.config['JWT_SECRET_KEY'] = os.environ.get("JWT_SECRET_KEY")
 
     api = Api(app=flask_app)
