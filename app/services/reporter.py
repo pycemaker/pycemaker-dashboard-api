@@ -54,7 +54,6 @@ class Reporter:
             mailer = mailer.dispatch_email(html_body)
             uploader.close()
 
-            return "Relatório enviado com sucesso!"
-
         finally:
             uploader.close()
+            return "Relatório enviado com sucesso!"

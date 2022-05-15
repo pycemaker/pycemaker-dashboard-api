@@ -32,13 +32,14 @@ class CpuCurrentConsume(Resource):
 
 class CpuIntervalPrediction(Resource):
 
-    def get(self, date_start) -> Response:
+    def get(self, date_start, time_range) -> Response:
 
         try:
-            dados = Monitoramento(CpuUsage, date_start)
+            dados = Monitoramento(CpuUsage, date_start, time_range)
             dados = dados.get_prediction_data()
             return jsonify(dados)
-        except:
+        except Exception as err:
+            data = {'msg': err.message}
             return jsonify({'msg': "Nenhum dado encontrado"})
 
 
@@ -50,5 +51,5 @@ class CpuRandomPrediction(Resource):
             dados = Monitoramento(CpuUsage, date_now)
             dados = dados.get_random_data()
             return jsonify(dados)
-        except:
+        except Exception:
             return jsonify({'msg': "Nenhum dado encontrado"})

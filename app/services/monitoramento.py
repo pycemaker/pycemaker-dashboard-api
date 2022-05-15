@@ -20,6 +20,7 @@ class Monitoramento:
             time_range (str, optional): Intervalo de horas para filtragem. Defaults to "0".
         """
 
+        self.time_range = int(time_range)
         self.dados_atuais = None
         self.dados_anteriores = None
         self.classe_do_dado = classe_do_dado
@@ -174,12 +175,12 @@ class Monitoramento:
         # data_inicial = data_final - datetime.timedelta(days=120) # The start date
         data_final = data_final + datetime.timedelta(hours=3)
         data_inicial = data_inicial + datetime.timedelta(hours=3)
-        print(data_inicial, data_final)
+        # print(data_inicial, data_final)
 
         classe_do_dado = self.classe_do_dado
         dados = classe_do_dado.objects(
             time_series__gte=data_inicial, time_series__lte=data_final)
-        print(dados._query)
+        # print(dados._query)
         # print(dados)
 
         dados = [x.to_mongo() for x in dados]
@@ -211,10 +212,12 @@ class Monitoramento:
             list: Lista com os dados encontrados.
         """
 
+        data_inicial = data_inicial + datetime.timedelta(hours=3)
+
         classe_do_dado = self.classe_do_dado
         dados = classe_do_dado.objects(
             time_series__gte=data_inicial)
-        print(dados._query)
+        # print(dados._query)
 
         # dados = classe_do_dado.objects(Q(time_series__gte=data_inicial)).to_json()
 
@@ -380,7 +383,7 @@ class Monitoramento:
             ]
         return []
 
-    def get_prediction_data(self):
+    def get_prediction_data_old(self):
         """Procedimento que retorna uma lista de dados de um intervalo de tempo com a previsão para esse intervalo
          e para o intervalo posterior, a última data do intervalo, e a data final do intervalo.
 
@@ -430,6 +433,59 @@ class Monitoramento:
         return {"data": dados1['data'] + dados2['data'], "last_time_series": dados1['data'][-1]["time_series"],
                 "date": self.data_final_atual}
 
+    def get_prediction_data(self):
+        """Procedimento que retorna uma lista de dados de um intervalo de tempo com a previsão para esse intervalo
+         e para o intervalo posterior, a última data do intervalo, e a data final do intervalo.
+
+        Returns:
+            dict: Dicionário com todos os resultados obtidos.
+        """
+
+        # Periodicidade deve ser 5s
+        current_data = self.get_current_data()
+
+        import random
+
+        dados = []
+        t = self.data_final_atual
+
+        size = int((self.time_range * 60 * 60) / 5)
+
+        # Chamada do predict
+        predict = [0 for x in range(0, size)]
+
+        for i in range(0, size):
+            t = t + datetime.timedelta(seconds=5)
+            if i < len(current_data) - 1:
+                row = {
+                    "id": i+1,
+                    # "time_series": t,
+                    "time_series": current_data[i]["time_series"],
+                    "value": current_data[i]["value"],
+                    "predict_range":  [predict[i], predict[i]],
+                    "predict_value": predict[i]
+                }
+                dados.append(row)
+            else:
+                row = {
+                    "id": i+1,
+                    "time_series": t,
+                    "predict_range":  [predict[i], predict[i]],
+                    "predict_value": predict[i]
+                }
+                dados.append(row)
+
+        df = pd.DataFrame(dados)
+        # df['time_series'] = pd.date_range(
+        #     self.data_final_atual + datetime.timedelta(hours=3), freq='5S', periods=size)
+        df['time_series'] = pd.to_datetime(df['time_series'])
+
+        df = df.to_json(orient="table")
+        dados = json.loads(df)
+
+        return dados["data"]
+
+    # Para testes
     def get_random_data(self):
         """Função para randonizar dados, não será utilizada.
 

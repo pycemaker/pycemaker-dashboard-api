@@ -51,6 +51,19 @@ class RamCurrentConsume(Resource):
             return data, 400
 
 
+class RamIntervalPrediction(Resource):
+
+    def get(self, date_start, time_range) -> Response:
+
+        try:
+            dados = Monitoramento(JvmMemoryUsage, date_start, time_range)
+            dados = dados.get_prediction_data()
+            return jsonify(dados)
+        except:
+            data = {{'msg': "Nenhum dado encontrado"}}
+            return data, 400
+
+
 class RamDetailsCurrentConsume(Resource):
 
     def get(self, date_start) -> Response:
