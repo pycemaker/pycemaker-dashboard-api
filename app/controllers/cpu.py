@@ -1,7 +1,6 @@
-import traceback
 from flask import Response, jsonify
 from flask_restful import Resource
-
+from dateutil.parser._parser import UnknownTimezoneWarning
 
 from app.entities.cpu import CpuUsage
 from app.services.monitoramento import Monitoramento
@@ -13,10 +12,9 @@ class CpuIntervalConsume(Resource):
 
         try:
             data = Monitoramento(CpuUsage, date_now, time_range)
-            data = data.get_data()
+            data = data.get_interval_data()
             return jsonify(data)
-        except Exception:
-            traceback.print_exc()
+        except UnknownTimezoneWarning:
             return jsonify({'msg': "Nenhum dado encontrado"})
 
 
@@ -29,4 +27,29 @@ class CpuCurrentConsume(Resource):
             dados = dados.get_current_data()
             return jsonify(dados)
         except:
+            return jsonify({'msg': "Nenhum dado encontrado"})
+
+
+class CpuIntervalPrediction(Resource):
+
+    def get(self, date_start, time_range) -> Response:
+
+        try:
+            dados = Monitoramento(CpuUsage, date_start, time_range)
+            dados = dados.get_prediction_data()
+            return jsonify(dados)
+        except Exception as err:
+            data = {'msg': err.message}
+            return jsonify({'msg': "Nenhum dado encontrado"})
+
+
+class CpuRandomPrediction(Resource):
+
+    def get(self, date_now) -> Response:
+
+        try:
+            dados = Monitoramento(CpuUsage, date_now)
+            dados = dados.get_random_data()
+            return jsonify(dados)
+        except Exception:
             return jsonify({'msg': "Nenhum dado encontrado"})

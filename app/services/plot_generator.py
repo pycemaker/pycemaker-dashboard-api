@@ -11,8 +11,9 @@ import io
 def plot_line_chart(data, isPercentage):
 
     df = pd.DataFrame(data)
-    df['time_series'] = pd.to_datetime(df['time_series']).dt.tz_convert(None)
-    df['time_series'] = df['time_series'].dt.strftime("%d/%m %H:%M:%S")
+    # df['time_series'] = pd.to_datetime(df['time_series'])
+    # df['time_series'] = pd.to_datetime(df['time_series']).dt.tz_convert(None)
+    # df['time_series'] = df['time_series'].dt.strftime("%d/%m %H:%M:%S")
     if isPercentage:
         # df['value'] = df['value'] / 100
         df['value'] = df['value']
@@ -41,7 +42,7 @@ def plot_barh_chart(data):
     df = df.replace(np.nan, 0)
     df = (df.groupby(['criticity'])['value'].count() / len(df)) * 100
     ax = df.plot(kind='barh', color=[
-                 "indigo", "red", "green", "orange"], fontsize=13)
+                 "indigo", "red", "green", "orange"], fontsize=13, width = 0.3)
     ax.set_alpha(0.8)
     ax.set_title("Níveis de Consumo", fontsize=22)
     ax.set_ylabel("Criticidade", fontsize=15)

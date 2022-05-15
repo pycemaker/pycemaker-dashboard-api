@@ -1,9 +1,9 @@
-from mongoengine import Document, StringField, DateTimeField
+from mongoengine import Document, StringField, DateTimeField, FloatField, IntField
 
 
 class CpuUsage(Document):
     consume_percent = StringField()
-    time_series = StringField()
-    convert_timeseries = DateTimeField()
+    origin_time_series = IntField()
+    time_series = DateTimeField()
     criticity = StringField()
-    value = StringField()
+    value = FloatField()

@@ -1,4 +1,3 @@
-import traceback
 from flask import Response, jsonify
 from flask_restful import Resource
 
@@ -13,10 +12,9 @@ class ResponseTimeIntervalConsume(Resource):
 
         try:
             data = Monitoramento(ResponseTime, date_now, time_range)
-            data = data.get_data()
+            data = data.get_interval_data()
             return jsonify(data)
         except Exception:
-            traceback.print_exc()
             return jsonify({'msg': "Nenhum dado encontrado"})
 
 
