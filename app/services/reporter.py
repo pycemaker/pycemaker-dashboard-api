@@ -4,7 +4,7 @@ import traceback
 from flask import jsonify
 from app.entities.cpu import CpuUsage
 from app.entities.ram import JvmMemoryUsage
-from app.entities.request_count import RequestCount
+from app.entities.success_request_count import SuccessRequestCount
 from app.entities.response_time import ResponseTime
 from app.services.image_uploader import ImageUploader
 from app.services.mailer import Mailer
@@ -20,7 +20,7 @@ class Reporter:
         self.data = []
         self.image_paths = []
         self.metricas = [CpuUsage, JvmMemoryUsage,
-                         RequestCount, ResponseTime]
+                         SuccessRequestCount, ResponseTime]
         self.isPercentage = [False, False, True, True]
 
     def get_report(self):

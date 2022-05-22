@@ -1,4 +1,3 @@
-import traceback
 from flask import Response, jsonify
 from flask_restful import Resource
 
@@ -70,33 +69,7 @@ class RamDetailsCurrentConsume(Resource):
 
         try:
             dados = Monitoramento(JvmMemoryUsageDetails, date_start, "30")
-            dados = dados.get_current_ram_details_data()
-            return jsonify(dados)
-        except:
-            data = {{'msg': "Nenhum dado encontrado"}}
-            return data, 400
-
-
-class CurrentHeapConsume(Resource):
-
-    def get(self, date_start) -> Response:
-
-        try:
-            dados = Monitoramento(JvmMemoryUsageDetails, date_start, "30")
-            dados = dados.get_current_heap_data()
-            return jsonify(dados)
-        except:
-            data = {{'msg': "Nenhum dado encontrado"}}
-            return data, 400
-
-
-class CurrentNonheapConsume(Resource):
-
-    def get(self, date_start) -> Response:
-
-        try:
-            dados = Monitoramento(JvmMemoryUsageDetails, date_start, "30")
-            dados = dados.get_current_nonheap_data()
+            dados = dados.get_current_data()
             return jsonify(dados)
         except:
             data = {{'msg': "Nenhum dado encontrado"}}

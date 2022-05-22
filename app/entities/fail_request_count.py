@@ -1,9 +1,9 @@
 from mongoengine import Document, StringField, DateTimeField, FloatField, IntField
 
 
-class RequestCount(Document):
+class FailRequestCount(Document):
     origin_time_series = IntField()
     time_series = DateTimeField()
     criticity = StringField()
-    value_success = FloatField()
-    value_fail = FloatField()
+    value = FloatField()
+    status = StringField()

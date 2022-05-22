@@ -51,7 +51,6 @@ class JobsApi(Resource):
         try:
             request_data = request.get_json()
             request_data["user_id"] = "admin"
-            request_data["usesdsr_id"] = "admin"
 
             pcm_scheduler = PcmScheduler(scheduler)
             jobs = pcm_scheduler.modify_jobs(request_data)

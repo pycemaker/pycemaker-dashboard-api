@@ -6,4 +6,3 @@ class ResponseTime(Document):
     time_series = DateTimeField()
     criticity = StringField()
     value = FloatField()
-    status = StringField()
