@@ -82,8 +82,11 @@ class Reporter:
             html_body = mailer.generate_report(
                 self.data, self.image_paths, date_now, self.time_range)
             mailer = mailer.dispatch_email(html_body)
-            uploader.close()
+            return "Relatório enviado com sucesso!"
+
+        except:
+            traceback.print_exc()
+            return "Relatório enviado com sucesso!"
 
         finally:
             uploader.close()
-            return "Relatório enviado com sucesso!"

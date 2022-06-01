@@ -13,8 +13,7 @@ class Report(Resource):
             report = report.get_report()
 
             return jsonify({'msg': report})
-        except:
-            return jsonify({'msg': "Não foi possível realizar a operação"})
-        # except Exception as err:
-        #     data = {'msg': err.message}
-        #     return data, 400
+
+        except Exception as err:
+            data = {'msg': err}
+            return data, 400
