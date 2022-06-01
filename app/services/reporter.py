@@ -1,15 +1,17 @@
 from datetime import datetime
+import json
 import sys
 import traceback
 from flask import jsonify
+import requests
 from app.entities.cpu import CpuUsage
 from app.entities.ram import JvmMemoryUsage
-from app.entities.success_request_count import SuccessRequestCount
+from app.entities.request_count import RequestCount
 from app.entities.response_time import ResponseTime
 from app.services.image_uploader import ImageUploader
 from app.services.mailer import Mailer
 from app.services.monitoramento import Monitoramento
-from app.services.plot_generator import plot_barh_chart, plot_line_chart
+from app.services.plot_generator import plot_barh_chart, plot_health_chart, plot_line_chart
 
 
 class Reporter:
@@ -20,8 +22,16 @@ class Reporter:
         self.data = []
         self.image_paths = []
         self.metricas = [CpuUsage, JvmMemoryUsage,
-                         SuccessRequestCount, ResponseTime]
+                         RequestCount, ResponseTime]
         self.isPercentage = [False, False, True, True]
+
+    def sec_to_days(seconds):
+        a = str(seconds//(3600*24))
+        b = str(seconds//3600)
+        c = str((seconds % 3600)//60)
+        d = str((seconds % 3600) % 60)
+        e = ["{} dias, {} horas, {} minutos e {} segundos".format(a, b, c, d)]
+        return e
 
     def get_report(self):
 
@@ -46,6 +56,25 @@ class Reporter:
                 imagem = uploader.uploadBytesImage(buf)
                 buf.close()
                 self.image_paths.append(imagem)
+
+            data = requests.get(
+                "http://localhost:8080/health_data/%s" % (self.time_range))
+            data = data.json()
+            data2 = requests.get(
+                "http://localhost:8080/predicted_data/%s" % (self.time_range))
+            data2 = data2.json()
+
+            buf = plot_health_chart(data["data"], data2["data"], False)
+            imagem = uploader.uploadBytesImage(buf)
+            buf.close()
+            self.image_paths.append(imagem)
+
+            if data2["remaining_time"] == 0:
+                self.data.append("A Saúde do Sistema estará estavél na(s) próxima(s) %s hora(s)" % (
+                    self.time_range))
+            else:
+                self.data.append("%s" % (
+                    self.sec_to_days(self.time_range)))
 
             assunto = 'Pycemaker - Relatório Periódico'
             mailer = Mailer(self.email_to, assunto)

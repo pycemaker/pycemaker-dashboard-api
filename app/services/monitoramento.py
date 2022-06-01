@@ -251,6 +251,13 @@ class Monitoramento:
         self.dados_anteriores = self.find_data_interval(
             self.data_inicial_anterior, self.data_inicial_atual)
 
+        if any("value_success" in x for x in self.dados_atuais):
+            [x.update({"value": x["value_success"] + x["value_fail"]})
+             for x in self.dados_atuais]
+        if any("value_success" in x for x in self.dados_anteriores):
+            [x.update({"value": x["value_success"] + x["value_fail"]})
+             for x in self.dados_anteriores]
+
         mean_atual = self.get_mean(self.dados_atuais)
         mean_anterior = self.get_mean(self.dados_anteriores)
         lower = self.get_lower()
