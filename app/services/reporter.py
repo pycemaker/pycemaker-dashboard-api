@@ -12,6 +12,7 @@ from app.services.image_uploader import ImageUploader
 from app.services.mailer import Mailer
 from app.services.monitoramento import Monitoramento
 from app.services.plot_generator import plot_barh_chart, plot_health_chart, plot_line_chart
+import os
 
 
 class Reporter:
@@ -58,10 +59,10 @@ class Reporter:
                 self.image_paths.append(imagem)
 
             data = requests.get(
-                "http://localhost:8080/health_data/%s" % (self.time_range))
+                "%s/health_data/%s" % (os.environ.get("ML_URL"), self.time_range))
             data = data.json()
             data2 = requests.get(
-                "http://localhost:8080/predicted_data/%s" % (self.time_range))
+                "%s/predicted_data/%s" % (os.environ.get("ML_URL"), self.time_range))
             data2 = data2.json()
 
             buf = plot_health_chart(data["data"], data2["data"], False)
