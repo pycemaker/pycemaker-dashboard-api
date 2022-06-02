@@ -26,12 +26,12 @@ class Reporter:
                          RequestCount, ResponseTime]
         self.isPercentage = [False, False, True, True]
 
-    def sec_to_days(seconds):
+    def sec_to_days(self, seconds):
         a = str(seconds//(3600*24))
         b = str(seconds//3600)
         c = str((seconds % 3600)//60)
         d = str((seconds % 3600) % 60)
-        e = ["{} dias, {} horas, {} minutos e {} segundos".format(a, b, c, d)]
+        e = "{} dias, {} horas, {} minutos e {} segundos".format(a, b, c, d)
         return e
 
     def get_report(self):
@@ -75,7 +75,7 @@ class Reporter:
                     self.time_range))
             else:
                 self.data.append("%s" % (
-                    self.sec_to_days(self.time_range)))
+                    self.sec_to_days(int(self.time_range))))
 
             assunto = 'Pycemaker - Relatório Periódico'
             mailer = Mailer(self.email_to, assunto)
@@ -86,7 +86,7 @@ class Reporter:
 
         except:
             traceback.print_exc()
-            return "Relatório enviado com sucesso!"
+            return "Não foi possível enviar o relatório!"
 
         finally:
             uploader.close()
