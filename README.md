@@ -60,14 +60,9 @@ EMAIL_FROM=email_para_disparo_de_relatorios_e_alertas
 PASSWORD=senha_do_email
 MONGO_DB_URL=endereco_de_conexao
 FIREBASE_SETTINGS=credenciais_de_conexao
+ML_URL=endereco_do_ml
+TZ=America/Sao_Paulo
 ```
-
-</li>
-</ul>
-<ul>
-<li>Configure um serviço no Firebase, gere uma chave e armazena-a na raiz desse repositório com o nome:  <b>firebase-settings.json</b>.
-<br/>
-
 
 </li>
 </ul>
