@@ -251,6 +251,13 @@ class Monitoramento:
         self.dados_anteriores = self.find_data_interval(
             self.data_inicial_anterior, self.data_inicial_atual)
 
+        if any("value_success" in x for x in self.dados_atuais):
+            [x.update({"value": x["value_success"] + x["value_fail"]})
+             for x in self.dados_atuais]
+        if any("value_success" in x for x in self.dados_anteriores):
+            [x.update({"value": x["value_success"] + x["value_fail"]})
+             for x in self.dados_anteriores]
+
         mean_atual = self.get_mean(self.dados_atuais)
         mean_anterior = self.get_mean(self.dados_anteriores)
         lower = self.get_lower()
@@ -280,158 +287,45 @@ class Monitoramento:
 
         return dados
 
-    # def get_interval_ram_details_data(self):
-    #     """Procedimento que retorna uma lista de dados de consumo de memória agrupados por heap e nonheap,
-    #     e as datas do intervalo buscado.
-
-    #     Returns:
-    #         dict: Dicionário com todos os resultados obtidos.
-    #     """
-
-    #     df = self.transform_data()
-    #     df = df[(df['time_series'] >= self.data_inicial_atual)
-    #             & (df['time_series'] <= self.data_final_atual)]
-    #     df = df[['time_series', 'jvm_memory_area', 'value']]
-    #     df = df.groupby(['time_series', 'jvm_memory_area'])[['value']].sum()
-    #     df = df.unstack(level=-1)
-    #     df.columns = df.columns.get_level_values(1).rename(None)
-    #     df = df.to_json(orient="table")
-    #     parsed = json.loads(df)
-
-    #     return {'data': parsed,
-    #             'datas': [self.data_final_atual, self.data_inicial_atual]
-    #             }
-
-    # NAO UTILIZAR
-    def get_current_ram_details_data(self):
-        """Busca no banco todos os dados de consumo de memória, converte para os tipos desejados,
-        filtra a partir de uma data e agrupa por heap e nonheap.
-
-        Returns:
-            list: Lista com todos os dados encontrados.
-        """
-
-        df = self.transform_data()
-        df = df[df['time_series'] >= self.data_final_atual]
-        df = df[['time_series', 'jvm_memory_area', 'value']]
-        df = df.groupby(['time_series', 'jvm_memory_area'])[['value']].sum()
-        df = df.unstack(level=-1)
-        df.columns = df.columns.get_level_values(1).rename(None)
-        df = df.to_json(orient="table")
-        parsed = json.loads(df)
-        return parsed['data']
-
-    # NAO UTILIZAR
-    def get_current_heap_data(self):
-        """Procedimento que retorna o consumo atual de heap e o consumo restante disponível.
-
-        Returns:
-            list: Lista com os valores obtidos.
-        """
-
-        lista = self.get_current_ram_details_data()
-
-        if lista:
-            heap_max = requests.get("https://pcm-prometheus.herokuapp.com/api/v1/query", params={
-                'query': 'sum(jvm_memory_max_bytes{area="heap"})'})
-            heap_max = heap_max.json()
-            heap_max = heap_max['data']['result'][0]['value'][1]
-
-            value_atual = lista[-1]["heap"]
-            value_restante = float(heap_max) - float(value_atual)
-
-            return [
-                {
-                    "name": 'heap_atual',
-                    "value": value_atual
-                },
-                {
-                    "name": 'heap_restante',
-                    "value": value_restante
-                }
-            ]
-        return []
-
-    # NAO UTILIZAR
-    def get_current_nonheap_data(self):
-        """Procedimento que retorna o consumo atual de nonheap e o consumo restante disponível.
-
-        Returns:
-            list: Lista com os valores obtidos.
-        """
-
-        lista = self.get_current_ram_details_data()
-
-        if lista:
-            nonheap_max = requests.get("https://pcm-prometheus.herokuapp.com/api/v1/query", params={
-                'query': 'sum(jvm_memory_max_bytes{area="nonheap"})'})
-            nonheap_max = nonheap_max.json()
-            nonheap_max = nonheap_max['data']['result'][0]['value'][1]
-
-            value_atual = lista[-1]["nonheap"]
-            value_restante = float(nonheap_max) - float(value_atual)
-
-            return [
-                {
-                    "name": 'nonheap_atual',
-                    "value": value_atual
-                },
-                {
-                    "name": 'nonheap_restante',
-                    "value": value_restante
-                }
-            ]
-        return []
-
-    def get_prediction_data_old(self):
-        """Procedimento que retorna uma lista de dados de um intervalo de tempo com a previsão para esse intervalo
-         e para o intervalo posterior, a última data do intervalo, e a data final do intervalo.
+    def get_interval_req_count_data(self):
+        """Procedimento que retorna uma lista de dados de um intervalo, uma lista de dados do intervalo anterior ao atual,
+        a média do intervalo atual, a média do intervalo anterior, uma lista de dados com os menores dados, uma
+        lista de dados com os maiores dados, o crescimento médio do intervalo atual, uma lista de classificação dos dados
+        do intervalo atual, e as datas dos intervalos analisados.
 
         Returns:
             dict: Dicionário com todos os resultados obtidos.
         """
 
-        import random
+        self.dados_atuais = self.find_data_interval(
+            self.data_inicial_atual, self.data_final_atual)
 
-        dados1 = []
-        dados2 = []
-        t = datetime.datetime.now()
+        [d.update({"value": d["value_success"] + d["value_fail"]})
+         for d in self.dados_atuais]
 
-        predict = [random.randint(2, 8) / 10 for x in range(0, 20)]
+        self.dados_anteriores = self.find_data_interval(
+            self.data_inicial_anterior, self.data_inicial_atual)
 
-        for i in range(0, 10):
-            t = t + datetime.timedelta(seconds=3)
-            row = {
-                "id": i+1,
-                "time_series": t,
-                "value": random.randint(3, 7) / 10,
-                "predict_range":  [predict[i] - 0.3, predict[i] + 0.3],
-                "predict_value": predict[i]
-            }
-            dados1.append(row)
+        [d.update({"value": d["value_success"] + d["value_fail"]})
+         for d in self.dados_anteriores]
 
-        for i in range(0, 10):
-            t = t + datetime.timedelta(seconds=3)
-            row = {
-                "id": i+10,
-                "time_series": t,
-                "predict_range":  [predict[10+i] - 0.5, predict[10+i] + 0.5],
-                "predict_value": predict[10+i]
-            }
-            dados2.append(row)
+        mean_atual = self.get_mean(self.dados_atuais)
+        mean_anterior = self.get_mean(self.dados_anteriores)
+        lower = self.get_lower()
+        higher = self.get_higher()
+        growth = self.get_growth(mean_atual, mean_anterior)
+        criticity_classification = self.get_criticity_classification()
 
-        df = pd.DataFrame(dados1)
-        df['time_series'] = pd.to_datetime(df['time_series'])
-        df = df.to_json(orient="table")
-        dados1 = json.loads(df)
-
-        df = pd.DataFrame(dados2)
-        df['time_series'] = pd.to_datetime(df['time_series'])
-        df = df.to_json(orient="table")
-        dados2 = json.loads(df)
-
-        return {"data": dados1['data'] + dados2['data'], "last_time_series": dados1['data'][-1]["time_series"],
-                "date": self.data_final_atual}
+        return {'data': self.dados_atuais,
+                'data_anterior': self.dados_anteriores,
+                'mean': mean_atual,
+                'mean_anterior': mean_anterior,
+                'lower': lower,
+                'higher': higher,
+                'growth': growth,
+                'criticity_classification': criticity_classification,
+                'datas': [self.data_final_atual, self.data_inicial_atual,
+                          self.data_inicial_anterior]}
 
     def get_prediction_data(self):
         """Procedimento que retorna uma lista de dados de um intervalo de tempo com a previsão para esse intervalo

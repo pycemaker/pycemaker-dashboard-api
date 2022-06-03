@@ -1,0 +1,7 @@
+{
+  "name": "Pycemaker Dashboard API",
+  "description": "API da Aplicação Dashboard",
+  "repository": "https://github.com/pycemaker/pycemaker-dashboard-api",
+  "logo": "https://raw.githubusercontent.com/pycemaker/pycemaker-dashboard-client/main/src/assets/icon.png",
+  "keywords": ["python", "flask"]
+}

@@ -1,4 +1,3 @@
-# flask packages
 from .routes import create_routes
 import os
 from flask import Flask, app

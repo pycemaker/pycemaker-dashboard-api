@@ -1,7 +1,9 @@
 from datetime import datetime
+import json
 import sys
 import traceback
 from flask import jsonify
+import requests
 from app.entities.cpu import CpuUsage
 from app.entities.ram import JvmMemoryUsage
 from app.entities.request_count import RequestCount
@@ -9,7 +11,8 @@ from app.entities.response_time import ResponseTime
 from app.services.image_uploader import ImageUploader
 from app.services.mailer import Mailer
 from app.services.monitoramento import Monitoramento
-from app.services.plot_generator import plot_barh_chart, plot_line_chart
+from app.services.plot_generator import plot_barh_chart, plot_health_chart, plot_line_chart
+import os
 
 
 class Reporter:
@@ -22,6 +25,14 @@ class Reporter:
         self.metricas = [CpuUsage, JvmMemoryUsage,
                          RequestCount, ResponseTime]
         self.isPercentage = [False, False, True, True]
+
+    def sec_to_days(self, seconds):
+        a = str(seconds//(3600*24))
+        b = str(seconds//3600)
+        c = str((seconds % 3600)//60)
+        d = str((seconds % 3600) % 60)
+        e = "{} dias, {} horas, {} minutos e {} segundos".format(a, b, c, d)
+        return e
 
     def get_report(self):
 
@@ -47,13 +58,35 @@ class Reporter:
                 buf.close()
                 self.image_paths.append(imagem)
 
+            data = requests.get(
+                "%s/health_data/%s" % (os.environ.get("ML_URL"), self.time_range))
+            data = data.json()
+            data2 = requests.get(
+                "%s/predicted_data/%s" % (os.environ.get("ML_URL"), self.time_range))
+            data2 = data2.json()
+
+            buf = plot_health_chart(data["data"], data2["data"], False)
+            imagem = uploader.uploadBytesImage(buf)
+            buf.close()
+            self.image_paths.append(imagem)
+
+            if data2["remaining_time"] == 0:
+                self.data.append("A Saúde do Sistema estará estavél na(s) próxima(s) %s hora(s)" % (
+                    self.time_range))
+            else:
+                self.data.append("%s" % (
+                    self.sec_to_days(int(self.time_range))))
+
             assunto = 'Pycemaker - Relatório Periódico'
             mailer = Mailer(self.email_to, assunto)
             html_body = mailer.generate_report(
                 self.data, self.image_paths, date_now, self.time_range)
             mailer = mailer.dispatch_email(html_body)
-            uploader.close()
+            return "Relatório enviado com sucesso!"
+
+        except:
+            traceback.print_exc()
+            return "Não foi possível enviar o relatório!"
 
         finally:
             uploader.close()
-            return "Relatório enviado com sucesso!"
