@@ -62,7 +62,7 @@ def plot_health_chart(data, data2, isPercentage):
 
     df = pd.DataFrame(data)
     df2 = pd.DataFrame(data2)
-    df2.rename(columns={'index': 'date',
+    df2.rename(columns={'index': 'time_series',
                'predicted_mean': 'health'}, inplace=True)
     # df['time_series'] = pd.to_datetime(df['time_series'])
     # df['time_series'] = pd.to_datetime(df['time_series']).dt.tz_convert(None)
@@ -74,10 +74,10 @@ def plot_health_chart(data, data2, isPercentage):
     else:
         df['health'] = df['health'] * 100
         df2['health'] = df2['health'] * 100
-    df['date'] = pd.to_datetime(df['date'])
-    df2['date'] = pd.to_datetime(df2['date'])
-    df = df.set_index("date")
-    df2 = df2.set_index("date")
+    df['time_series'] = pd.to_datetime(df['time_series'])
+    df2['time_series'] = pd.to_datetime(df2['time_series'])
+    df = df.set_index("time_series")
+    df2 = df2.set_index("time_series")
     ax = df.plot(label='Saúde do Período', fontsize=13)
     df2.plot(ax=ax,  label='Saúde Prevista')
     ax.set_alpha(0.8)
